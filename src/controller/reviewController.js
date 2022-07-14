@@ -25,14 +25,6 @@ const addReview = async function (req, res) {
         if (!Object.keys(requestReviewBody).includes("reviewedBy")) {
             requestReviewBody["reviewedBy"]= "Guest"
         }
-        // if(requestReviewBody.rating){
-        //     console.log(requestReviewBody.rating)
-        //     console.log(typeof(requestReviewBody.rating))
-        //     if (requestReviewBody.rating ==0) {
-        //         return res.status(400).send({ status: false, message: "Rating must be in between 1 to 5." })
-        //     } 
-        // }
-
         // if (!reviewedBy) { return res.status(400).send({ status: false, msg: "reviewedBy field is required" }) }
         if (!rating) { return res.status(400).send({ status: false, msg: "rating field is required" }) }
         if (!review) { return res.status(400).send({ status: false, msg: "review is required" }) }
@@ -43,11 +35,15 @@ const addReview = async function (req, res) {
         if (!validator.isValid(rating)) {return res.status(400).send({ status: false, message: "Rating is required" })}
         if (!validator.isEmpty(rating)) {return res.status(400).send({ status: false, message: " please provide Rating" })}
 
+        //validation for number
+
         //setting rating limit between 1-5.
         if (!(rating >= 1 && rating <= 5  )) {
             return res.status(400).send({ status: false, message: "Rating must be in between 1 to 5." })
         }
 
+        const searchBook = await bookModel.findById({ _id: bookId,isDeleted:false})
+        if (!searchBook) { return res.status(404).send({ status: false, message: `Book does not exist by this id ${bookId}.` })}
         
        
      //extracted Book id 
@@ -138,10 +134,10 @@ const deleteReviews = async function (req, res) {
         const findReviewData = await reviewModel.findOne({_id : review,bookId: book,isDeleted:false})
         if(!findReviewData) return res.status(404).send({status:false,message:'No review Data Found'})
        
-        let changeReviewCount= await bookModel.findOneAndUpdate( {isDeleted: false,_id: book},{$inc:{reviews:-1}})
-       
+        let changeReviewCount= await bookModel.findOneAndUpdate( {isDeleted: false,_id: book})
         if(changeReviewCount==null) return res.status(404).send({status:false,message:'Data Not Found, Book is deleted'})
-       
+        changeReviewCount.reviews= changeReviewCount.reviews===0 ?0 :changeReviewCount.reviews -1
+            await changeReviewCount.save()
         let DeletedReview = await reviewModel.findByIdAndUpdate(  { _id: review }, {$set: { isDeleted: true }})
         return res.status(200).send({status:true,Data:"review Deleted successfully"})
      
