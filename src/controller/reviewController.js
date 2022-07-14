@@ -92,6 +92,7 @@ let updateReview = async function (req, res) {
         for(let i=0;i<checkInput.length;i++){
         
         let as=arr.includes(checkInput[i]) 
+        
         if(!as)return res.status(400).send({status:false,msg:"you can only update  review,rating and reviewedBy fields."})
         }
 
