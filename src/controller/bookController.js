@@ -39,6 +39,7 @@ const aws= require("aws-sdk")
 const createBook = async function (req, res) {
     try {
         let data = req.body;
+        let files= req.files
         
         // destructuring the request body
         const { title, excerpt, userId, ISBN, category, subcategory, releasedAt } = data
@@ -84,15 +85,15 @@ const createBook = async function (req, res) {
         let findTitle= await bookModel.findOne({title:title})
         if(findTitle) return res.status(400).send({ status: false, msg: "title already Exist" })
         // let files= req.files
-        // if(files && files.length>0){
+        if(files && files.length>0){
             //upload to s3 and get the uploaded link
-            // res.send the link back to frontend/postman
-           // let uploadedFileURL= await uploadFile( files[0] )
-      //      data["bookCover"]=uploadedFileURL
-        // }
-        // else{
-        //   return  res.status(400).send({ msg: "No file found" })
-        // }
+            //res.send the link back to frontend/postman
+           let uploadedFileURL= await uploadFile( files[0] )
+           data["bookCover"]=uploadedFileURL
+        }
+        else{
+          return  res.status(400).send({ msg: "No file found" })
+        }
 
         let bookData = await bookModel.create(data);
   return      res.status(201).send({ status: true, msg: bookData })

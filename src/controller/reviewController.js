@@ -133,11 +133,13 @@ const deleteReviews = async function (req, res) {
         
         const findReviewData = await reviewModel.findOne({_id : review,bookId: book,isDeleted:false})
         if(!findReviewData) return res.status(404).send({status:false,message:'No review Data Found'})
+
+        //let changeReviewCount= await bookModel.findOneAndUpdate( {isDeleted: false,_id: book}})
        
-        let changeReviewCount= await bookModel.findOneAndUpdate( {isDeleted: false,_id: book})
+        let changeReviewCount= await bookModel.findOneAndUpdate( {isDeleted: false,_id: book},{$inc:{reviews:-1}})
         if(changeReviewCount==null) return res.status(404).send({status:false,message:'Data Not Found, Book is deleted'})
-        changeReviewCount.reviews= changeReviewCount.reviews===0 ?0 :changeReviewCount.reviews -1
-            await changeReviewCount.save()
+        // changeReviewCount.reviews= changeReviewCount.reviews===0 ?0 :changeReviewCount.reviews -1
+        //     await changeReviewCount.save()
         let DeletedReview = await reviewModel.findByIdAndUpdate(  { _id: review }, {$set: { isDeleted: true }})
         return res.status(200).send({status:true,Data:"review Deleted successfully"})
      
